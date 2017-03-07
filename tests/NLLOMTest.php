@@ -15,6 +15,8 @@ class NLLOMTest extends TestCase
     {
         $lom = new \Kennisnet\NLLOM();
 
+        $lom->saveAsXML();
+
         $this->assertInstanceOf(\Kennisnet\NLLOM::class, $lom);
     }
 }

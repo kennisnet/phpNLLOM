@@ -1,6 +1,29 @@
 <?php
 namespace Kennisnet;
 
+$mapping = [
+    'http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd' => 'imsmd_v1p2p4.xsd',
+    'http://www.w3.org/2001/xml.xsd' => 'xml.xsd',
+    'https://www.w3.org/2001/03/xml.xsd' => 'xml_3.xsd',
+    'http://www.w3.org/2001/03/xml.xsd' => 'xml_3.xsd',
+];
+
+libxml_set_external_entity_loader(
+    function ($public, $system, $context) use ($mapping) {
+
+        if (is_file($system)) return $system;
+
+        $path = realpath(__DIR__.'/xsd/'.basename($system));
+
+        if (!is_file($path)) {
+            throw new \Exception($path . ' not found');
+        }
+
+        return realpath(__DIR__.'/xsd/'.basename($system));
+    }
+);
+
+
 class NLLOM
 {
     const XMLNS = "http://www.imsglobal.org/xsd/imsmd_v1p2";
@@ -8,6 +31,9 @@ class NLLOM
     const XSI_SCHEMALOCATION = "http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd";
     const FORMATTING = true;
     const PRESERVE_WS = false;
+
+    private $validate = true;
+    private $debug = false;
 
     private $title;
     private $description;
@@ -17,16 +43,30 @@ class NLLOM
     private $keywords = [];
     private $publishers = [];
 
-    public function __construct($validate = true)
+    public function __construct($validate = true, $debug = false)
     {
-
+        $this->validate = $validate;
+        $this->debug = $debug;
     }
 
-    public function addKeyword($keyword)
+    /**
+     * Add keyword to <general>
+     *
+     * @param $keyword
+     */
+    public function addGeneralKeyword($keyword)
     {
         $this->keywords[] = $keyword;
     }
 
+    /**
+     * Add identifier
+     *
+     * Example: 'uri', 'urn:uuid:foo-bar'
+     *
+     * @param $key
+     * @param $value
+     */
     public function addIdentifier($key, $value)
     {
         $this->identifiers[] = [
@@ -35,6 +75,13 @@ class NLLOM
         ];
     }
 
+    /**
+     * Add relation
+     *
+     * @param $key
+     * @param $value
+     * @param string $description
+     */
     public function addRelation($key, $value, $description = '')
     {
         $this->relations[] = [
@@ -43,16 +90,25 @@ class NLLOM
         ];
     }
 
+    /**
+     * @param $title
+     */
     public function setTitle($title)
     {
         $this->title = $title;
     }
 
+    /**
+     * @param $description
+     */
     public function setDescription($description)
     {
         $this->description = $description;
     }
 
+    /**
+     * @param $format
+     */
     public function setFormat($format)
     {
         $this->format = $format;
@@ -60,8 +116,10 @@ class NLLOM
 
 
     /**
-     * @todo: Validate!
+     * Get XML from DOM
+     *
      * @return string
+     * @throws \Exception
      */
     public function saveAsXML()
     {
@@ -76,7 +134,7 @@ class NLLOM
 
         $general = $domDocument->createElement('general');
         $this->domSetTitle($domDocument, $general);
-        $this->domSetUUID($domDocument, $general);
+        //$this->domSetUUID($domDocument, $general);
         $this->domAddIdentifiers($domDocument, $general);
 
         $this->domSetDescription($domDocument, $general);
@@ -109,27 +167,24 @@ class NLLOM
         $rights = $domDocument->createElement('rights');
         $root->appendChild($rights);
 
-        return $domDocument->saveXML();
-    }
+        $xml = $domDocument->saveXML();
 
+        if ($this->debug) {
+            self::writeDebug($xml);
+        }
 
-    private function domSetUUID(\DOMDocument $document, \DOMElement $general)
-    {
-        $uuid = self::generateId();
+        if ($this->validate) {
+            $domDocumentValidate = new \DOMDocument('1.0', 'UTF-8');
+            $domDocumentValidate->loadXML($xml);
 
-        //Insert identifier XML
-        $template = <<< XML
-<catalogentry>
-    <catalog>URI</catalog>
-    <entry>
-        <langstring xml:lang="x-none">$uuid</langstring>
-    </entry>
-</catalogentry>
-XML;
+            if (!$domDocumentValidate->schemaValidate('xsd/imsmd_v1p2p4.xsd')) {
+                throw new \Exception('Validation failed');
+            } else {
+                if ($this->debug) self::writeDebug('Validation success');
+            }
+        }
 
-        $fragment = $document->createDocumentFragment();
-        $fragment->appendXML($template);
-        $general->appendChild($fragment);
+        return $xml;
     }
 
     private function domAddIdentifiers(\DOMDocument $document, \DOMElement $general)
@@ -255,10 +310,9 @@ XML;
 
     }
 
-    private static function generateId()
+    private static function writeDebug($msg)
     {
-        return 'urn:uuid:' . (string) Uuid::uuid4();
+        echo $msg . PHP_EOL;
     }
-
 
 }
