@@ -58,6 +58,7 @@ class NLLOM
     private $technicalFormat;
     private $technicalSize;
     private $technicalLocation;
+    private $technicalDuration = [];
 
     //Educational
     private $educationalLearningResourceTypes = [];
@@ -334,6 +335,20 @@ class NLLOM
         $this->technicalLocation = $value;
     }
 
+    /**
+     * @param $datetime
+     * @param string $description
+     * @param string $language
+     */
+    public function setTechnicalDuration($datetime, $description = '', $language = 'nl')
+    {
+        $this->technicalDuration = [
+            'datetime' => $datetime,
+            'description' => $description,
+            'language' => $language
+        ];
+    }
+
     public function addEducationalLearningResourceType($key, $value)
     {
         $this->educationalLearningResourceTypes[] = [
@@ -487,7 +502,7 @@ class NLLOM
 
     private function domAddIdentifiers(\DOMElement $general)
     {
-        $addDom = function ($general, $identifier) {
+        $addDom = function ($identifier) use ($general) {
             $catalogentry = $this->dom->createElement('catalogentry');
 
             $node = $this->dom->createElement('catalog', $identifier["key"]);
@@ -501,10 +516,10 @@ class NLLOM
             $general->appendChild($catalogentry);
         };
 
-        $addDom($general, $this->generalIdentifier);
+        $addDom($this->generalIdentifier);
 
         foreach ($this->generalIdentifiers as $identifier) {
-            $addDom($general, $identifier);
+            $addDom($identifier);
         }
     }
 
@@ -566,7 +581,7 @@ class NLLOM
 
     }
 
-    private function domSetLifecycle($root)
+    private function domSetLifecycle(\DomNode $root)
     {
         $lifecycle = $this->dom->createElement('lifecycle');
 
@@ -606,7 +621,7 @@ class NLLOM
         }
     }
 
-    private function domSetMetametadata($root)
+    private function domSetMetametadata(\DomNode $root)
     {
         if ($this->metametadataCreator) {
             $node = $this->createContributor('creator', $this->metametadataCreator);
@@ -635,12 +650,25 @@ class NLLOM
         $node = $this->dom->createElement('format', $this->technicalFormat);
         $element->appendChild($node);
 
-        $node = $this->dom->createElement('size', $this->technicalSize);
+        if ($this->technicalSize) {
+            $node = $this->dom->createElement('size', $this->technicalSize);
+            $element->appendChild($node);
+        }
 
-        $element->appendChild($node);
         $node = $this->dom->createElement('location', $this->technicalLocation);
-
         $element->appendChild($node);
+
+        if ($this->technicalDuration) {
+            $node = $this->dom->createElement('duration');
+            $dt = $this->dom->createElement('datetime', $this->technicalDuration['datetime']);
+            $desc = $this->dom->createElement('description');
+            $desc->appendChild($this->createLangstring($this->technicalDuration['description'], $this->technicalDuration['language']));
+
+            $node->appendChild($dt);
+            $node->appendChild($desc);
+
+            $element->appendChild($node);
+        }
     }
 
     private function domSetEducational(\DOMElement $element)
