@@ -10,13 +10,14 @@ require('vendor/autoload.php');
 use Kennisnet\NLLOM;
 
 $lom = new NLLOM([
-    'debug' => true
+    'debug' => true,
 ]);
 
 
 //TODO: auto add location to identifier? (option voor toevoegen)
+//Add language options to title, description?
 
-$lom->setGeneralTitle('Test');
+$lom->setGeneralTitle('Test <strike>test</strike>');
 $lom->setGeneralDescription('één beschrijving met speciale tekens');
 
 $lom->setGeneralIdentifier('uri', 'urn:uuid:foo-bar');
@@ -31,6 +32,8 @@ $lom->setGeneralAggregationLevel(2);
 $lom->setLifecycleVersion('07122005 124436');
 $lom->setLifecycleStatus('final');
 
+
+//TODO: validate VCARD
 //Add alias
 $vcard = <<<VCARD
 BEGIN:VCARD

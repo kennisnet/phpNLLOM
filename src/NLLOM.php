@@ -31,8 +31,6 @@ class NLLOM
     const XMLNS = "http://www.imsglobal.org/xsd/imsmd_v1p2";
     const XMLNS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     const XSI_SCHEMALOCATION = "http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd";
-    const FORMATTING = true;
-    const PRESERVE_WS = false;
 
     //General
     private $generalTitle;
@@ -93,15 +91,15 @@ class NLLOM
             'validate' => true,
             'debug' => false,
             'lom_version' => 'LOMv1.0',
-            'lom_schema' => 'nl_lom_v1p0'
+            'lom_schema' => 'nl_lom_v1p0',
+            'preserve_whitespace' => true,
+            'format_output' => true
         ];
 
         $this->options = array_merge($defaults, $options);
     }
 
     /**
-     * Add keyword to <general>
-     *
      * @param $keyword
      */
     public function addGeneralKeyword($keyword)
@@ -417,8 +415,7 @@ class NLLOM
      *
      *
      * @param array $purpose
-     * @param array $taxonpath
-     * @param $type
+     * @param array $taxonpaths
      */
     public function addClassification(array $purpose, array $taxonpaths = [])
     {
@@ -441,8 +438,8 @@ class NLLOM
 
         $this->dom = $domDocument;
 
-        $domDocument->formatOutput = self::FORMATTING;
-        $domDocument->preserveWhiteSpace = self::PRESERVE_WS;
+        $domDocument->formatOutput = $this->options['format_output'];
+        $domDocument->preserveWhiteSpace = $this->options['preserve_whitespace'];
 
         $root = $domDocument->createElementNS(self::XMLNS, 'lom');
         $root = $domDocument->appendChild($root);
@@ -724,46 +721,54 @@ class NLLOM
     }
 
 
-//    private function domAddRelations(\DOMElement $element)
-//    {
-//        foreach ($this->relations as $relation) {
-//            $template = <<<XML
-//<relation>
-//  <kind>
-//    <source>
-//      <langstring xml:lang="x-none">http://purl.edustandaard.nl/relation_kind_nllom_20131211</langstring>
-//    </source>
-//    <value>
-//      <langstring xml:lang="x-none">{$relation['key']}</langstring>
-//    </value>
-//  </kind>
-//  <resource>
-//XML;
-//
-//            if ($relation['description']) {
-//                $template .= <<<XML
-//    <description>
-//      <langsting xml:lang="x-none">application/pdf</langstring>
-//    </description>
-//XML;
-//            }
-//
-//            $template .= <<<XML
-//    <catalogentry>
-//      <catalog>URI</catalog>
-//      <entry>
-//        <langstring xml:lang="x-none">{$relation['value']}</langstring>
-//      </entry>
-//    </catalogentry>
-//  </resource>
-//</relation>
-//XML;
-//
-//            $fragment = $document->createDocumentFragment();
-//            $fragment->appendXML($template);
-//            $element->appendChild($fragment);
-//        }
-//    }
+    private function domAddRelations(\DOMElement $element)
+    {
+        foreach ($this->relations as $relation) {
+
+            $node = $this->dom->createElement('relation');
+
+            $kind = $this->createSourceValueElement('kind', 1, 1);
+            $node->appendChild($kind);
+
+            $resource = $this->dom->createElement('resource');
+
+
+            $template = <<<XML
+<relation>
+  <kind>
+    <source>
+      <langstring xml:lang="x-none">http://purl.edustandaard.nl/relation_kind_nllom_20131211</langstring>
+    </source>
+    <value>
+      <langstring xml:lang="x-none">{$relation['key']}</langstring>
+    </value>
+  </kind>
+  <resource>
+XML;
+
+            if ($relation['description']) {
+                $template .= <<<XML
+    <description>
+      <langsting xml:lang="x-none">application/pdf</langstring>
+    </description>
+XML;
+            }
+
+            $template .= <<<XML
+    <catalogentry>
+      <catalog>URI</catalog>
+      <entry>
+        <langstring xml:lang="x-none">{$relation['value']}</langstring>
+      </entry>
+    </catalogentry>
+  </resource>
+</relation>
+XML;
+
+            $element->appendChild($node);
+
+        }
+    }
 
 
     private function domAddClassifications(\DOMNode $root)
