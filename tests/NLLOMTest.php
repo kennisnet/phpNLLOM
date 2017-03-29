@@ -7,7 +7,7 @@ class NLLOMTest extends TestCase
     public function testCreate()
     {
         // Do not output spaces in document, so it's easier to match with correct xml file
-        $lom = new \Kennisnet\NLLOM([
+        $lom = new \Kennisnet\NLLOM\NLLOM([
             'preserve_whitespace' => false,
             'format_output' => false
         ]);

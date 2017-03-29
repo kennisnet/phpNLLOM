@@ -3,7 +3,7 @@
   "description": "NLLOM service",
   "autoload": {
     "psr-4": {
-      "Kennisnet\\": "src/"
+      "Kennisnet\\NLLOM\\": "src/"
     }
   },
   "require-dev": {

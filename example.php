@@ -7,7 +7,7 @@
 
 require('vendor/autoload.php');
 
-use Kennisnet\NLLOM;
+use Kennisnet\NLLOM\NLLOM;
 
 $lom = new NLLOM([
     'debug' => true,
