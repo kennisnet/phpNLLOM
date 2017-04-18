@@ -622,7 +622,9 @@ class NLLOM
             $element->appendChild($node);
         }
 
-        $node = $this->dom->createElement('location', $this->technicalLocation);
+        $node = $this->dom->createElement('location');
+        $value = $this->dom->createTextNode($this->technicalLocation);
+        $node->appendChild($value);
         $element->appendChild($node);
 
         if ($this->technicalDuration) {
@@ -862,7 +864,9 @@ XML;
 
     private function createLangstring($value, $language = 'x-none')
     {
-        $node = $this->dom->createElement('langstring', $value);
+        $node = $this->dom->createElement('langstring');
+        $value = $this->dom->createTextNode($value);
+        $node->appendChild($value);
         $node->setAttribute('xml:lang', $language);
         return $node;
     }

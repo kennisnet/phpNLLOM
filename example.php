@@ -58,7 +58,7 @@ $lom->setMetametadataLanguage('nl');
 
 $lom->setTechnicalFormat('application/pdf');
 $lom->setTechnicalSize(555666);
-$lom->setTechnicalLocation('https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497');
+$lom->setTechnicalLocation('https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1');
 $lom->setTechnicalDuration('PT1H30M', 'Tijd inc aftiteling');
 
 $lom->addEducationalLearningResourceType('http://purl.edustandaard.nl/vdex_learningresourcetype_czp_20060628.xml', 'open opdracht');
