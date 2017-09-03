@@ -402,9 +402,9 @@ class NLLOM
 
 
     /**
-     * Get XML from DOM
+     * Get DOM
      *
-     * @return string
+     * @return \DOMDocument
      * @throws \Exception
      */
     public function getDom()
@@ -455,6 +455,12 @@ class NLLOM
         return $domDocument;
     }
 
+    /**
+     * Get XML from DOM
+     *
+     * @return string
+     * @throws \Exception
+     */
     public function saveAsXML(){
       $domDocument = $this->getDom();
       $xml = $domDocument->saveXML();
