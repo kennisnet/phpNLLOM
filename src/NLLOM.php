@@ -407,7 +407,7 @@ class NLLOM
      * @return string
      * @throws \Exception
      */
-    public function saveAsXML()
+    public function getDom()
     {
         $domDocument = new \DOMDocument('1.0', 'UTF-8');
 
@@ -452,19 +452,24 @@ class NLLOM
 
         //$this->domAddRelations($domDocument, $root);
 
-        $xml = $domDocument->saveXML();
+        return $domDocument;
+    }
 
-        if ($this->options['debug']) {
-            self::writeDebug($xml);
-        }
+    public function saveAsXML(){
+      $domDocument = $this->getDom();
+      $xml = $domDocument->saveXML();
 
-        if ($this->options['validate']) {
-            Validator::validate($xml);
+      if ($this->options['debug']) {
+          self::writeDebug($xml);
+      }
 
-            if ($this->options['debug']) self::writeDebug('Validation success');
-        }
+      if ($this->options['validate']) {
+          Validator::validate($xml);
 
-        return $xml;
+          if ($this->options['debug']) self::writeDebug('Validation success');
+      }
+
+      return $xml;
     }
 
     private function domAddIdentifiers(\DOMElement $general)
