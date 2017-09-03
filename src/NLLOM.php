@@ -3,9 +3,8 @@ namespace Kennisnet\NLLOM;
 
 class NLLOM
 {
-    const XMLNS = "http://www.imsglobal.org/xsd/imsmd_v1p2";
-    const XMLNS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
-    const XSI_SCHEMALOCATION = "http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd";
+    const XMLNS = "http://ltsc.ieee.org/xsd/LOM";
+    const XSI_SCHEMALOCATION = "http://ltsc.ieee.org/xsd/LOM http://ltsc.ieee.org/xsd/lomv1.0/lom.xsd";
 
     //General
     private $generalTitle;
