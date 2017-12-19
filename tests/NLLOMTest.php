@@ -15,7 +15,6 @@ class NLLOMTest extends TestCase
         $lom->setGeneralTitle('Test <strike>test</strike>');
         $lom->setGeneralDescription('één beschrijving met speciale tekens');
 
-        $lom->setGeneralIdentifier('uri', 'urn:uuid:foo-bar');
         $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
         $lom->addGeneralIdentifier('uri', 'https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1');
 

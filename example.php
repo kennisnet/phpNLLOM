@@ -19,8 +19,6 @@ $lom = new NLLOM([
 
 $lom->setGeneralTitle('Test <strike>test</strike>');
 $lom->setGeneralDescription('één beschrijving met speciale tekens');
-
-$lom->setGeneralIdentifier('uri', 'urn:uuid:foo-bar');
 $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
 
 $lom->addGeneralLanguage('nl');
