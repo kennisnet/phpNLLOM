@@ -14,7 +14,6 @@ class NLLOM
     private $generalDescription;
     private $generalLanguages = [];
     private $generalAggregationLevel;
-    private $generalIdentifier;
     private $generalIdentifiers = [];
     private $generalKeywords = [];
 
@@ -95,24 +94,6 @@ class NLLOM
     public function addGeneralIdentifier($key, $value)
     {
         $this->generalIdentifiers[] = [
-            'key' => $key,
-            'value' => $value
-        ];
-    }
-
-    /**
-     * Set identifier
-     *
-     * This will be the first identifier in the LOM
-     *
-     * Example: 'uri', 'urn:uuid:foo-bar'
-     *
-     * @param $key
-     * @param $value
-     */
-    public function setGeneralIdentifier($key, $value)
-    {
-        $this->generalIdentifier = [
             'key' => $key,
             'value' => $value
         ];
@@ -470,9 +451,17 @@ class NLLOM
         return $xml;
     }
 
+    /**
+     * @return \DOMDocument
+     */
+    public function getDom()
+    {
+        return $this->dom;
+    }
+
     private function domAddIdentifiers(\DOMElement $general)
     {
-        $addDom = function ($identifier) use ($general) {
+        foreach ($this->generalIdentifiers as $identifier) {
             $catalogentry = $this->dom->createElement('catalogentry');
 
             $node = $this->dom->createElement('catalog', $identifier["key"]);
@@ -484,12 +473,6 @@ class NLLOM
             $catalogentry->appendChild($entry);
 
             $general->appendChild($catalogentry);
-        };
-
-        $addDom($this->generalIdentifier);
-
-        foreach ($this->generalIdentifiers as $identifier) {
-            $addDom($identifier);
         }
     }
 
