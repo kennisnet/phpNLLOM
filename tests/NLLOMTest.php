@@ -62,6 +62,28 @@ VCARD;
         $lom->setRightsCopyright('http://purl.edustandaard.nl/copyrightsandotherrestrictions_nllom_20110411', 'cc-by-30');
         $lom->setRightsDescription('Anderen mogen het werk gebruiken');
 
+        $lom->addRelation('embed', 'uri', 'http://www.vimdeo.com/dummy1', [
+            [
+                'language' => 'nl',
+                'value' => 'Test 1'
+            ],
+            [
+                'language' => 'en',
+                'value' => 'Test 2'
+            ],
+        ]);
+
+        $lom->addRelation('basedon', 'uri', 'http://www.vimdeo.com/dummy2', [
+            [
+                'language' => 'nl',
+                'value' => 'Test 3'
+            ],
+            [
+                'language' => 'en',
+                'value' => 'Test 4'
+            ],
+        ]);
+
         $lom->addClassification([
             'source' => 'http://download.edustandaard.nl/vdex/vdex_classification_purpose_czp_20060628.xml',
             'value' => 'discipline'
