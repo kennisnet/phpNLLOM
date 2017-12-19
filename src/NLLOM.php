@@ -7,6 +7,8 @@ class NLLOM
     const XMLNS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     const XSI_SCHEMALOCATION = "http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd";
 
+    const RELATION_VOCAB = 'http://purl.edustandaard.nl/relation_kind_nllom_20131211';
+
     //General
     private $generalTitle;
     private $generalDescription;
@@ -122,17 +124,18 @@ class NLLOM
     }
 
     /**
-     * Add relation
-     *
-     * @param $key
+     * @param $kind
+     * @param $uri
      * @param $value
-     * @param string $description
+     * @param array $descriptions
      */
-    public function addRelation($key, $value, $description = '')
+    public function addRelation($kind, $uri, $value, array $descriptions = [])
     {
         $this->relations[] = [
-            'key' => $key,
-            'value' => $value
+            'kind' => $kind,
+            'uri' => $uri,
+            'value' => $value,
+            'descriptions' => $descriptions
         ];
     }
 
@@ -448,9 +451,9 @@ class NLLOM
         $this->domSetRights($rights);
         $root->appendChild($rights);
 
-        $this->domAddClassifications($root);
+        $this->domAddRelations($root);
 
-        //$this->domAddRelations($domDocument, $root);
+        $this->domAddClassifications($root);
 
         $xml = $domDocument->saveXML();
 
@@ -693,52 +696,42 @@ class NLLOM
     }
 
 
-    private function domAddRelations(\DOMElement $element)
+    private function domAddRelations(\DOMNode $root)
     {
         foreach ($this->relations as $relation) {
 
-            $node = $this->dom->createElement('relation');
+            $relationNode = $this->dom->createElement('relation');
 
-            $kind = $this->createSourceValueElement('kind', 1, 1);
-            $node->appendChild($kind);
+            $kind = $this->createSourceValueElement('kind', self::RELATION_VOCAB, $relation['kind']);
+            $relationNode->appendChild($kind);
 
             $resource = $this->dom->createElement('resource');
 
+            if ($relation['descriptions']) {
+                $desc = $this->dom->createElement('description');
 
-            $template = <<<XML
-<relation>
-  <kind>
-    <source>
-      <langstring xml:lang="x-none">http://purl.edustandaard.nl/relation_kind_nllom_20131211</langstring>
-    </source>
-    <value>
-      <langstring xml:lang="x-none">{$relation['key']}</langstring>
-    </value>
-  </kind>
-  <resource>
-XML;
+                foreach($relation['descriptions'] as $description) {
+                    $desc->appendChild($this->createLangstring($description['value'], $description['language']));
+                }
 
-            if ($relation['description']) {
-                $template .= <<<XML
-    <description>
-      <langsting xml:lang="x-none">application/pdf</langstring>
-    </description>
-XML;
+                $resource->appendChild($desc);
             }
 
-            $template .= <<<XML
-    <catalogentry>
-      <catalog>URI</catalog>
-      <entry>
-        <langstring xml:lang="x-none">{$relation['value']}</langstring>
-      </entry>
-    </catalogentry>
-  </resource>
-</relation>
-XML;
+            $catalogentry = $this->dom->createElement('catalogentry');
 
-            $element->appendChild($node);
+            $node = $this->dom->createElement('catalog', $relation['uri']);
+            $catalogentry->appendChild($node);
 
+            $entry = $this->dom->createElement('entry');
+            $entry->appendChild($this->createLangstring($relation["value"]));
+
+            $catalogentry->appendChild($entry);
+
+            $resource->appendChild($catalogentry);
+
+            $relationNode->appendChild($resource);
+
+            $root->appendChild($relationNode);
         }
     }
 
