@@ -39,6 +39,7 @@ class NLLOM
     private $educationalIntendedUserRoles = [];
     private $educationalContexts = [];
     private $educationalTypicalAgeRanges = [];
+    private $educationalDifficulty = [];
 
     //Rights
     private $rightsCost;
@@ -330,6 +331,14 @@ class NLLOM
     public function addEducationalTypicalAgeRange($value)
     {
         $this->educationalTypicalAgeRanges[] = $value;
+    }
+
+    public function setEducationalDifficulty($source, $value)
+    {
+        $this->educationalDifficulty = [
+            'key' => $source,
+            'value' => $value
+        ];
     }
 
     public function setRightsCost($value)
@@ -660,6 +669,10 @@ class NLLOM
             $node = $this->dom->createElement('typicalagerange');
             $node->appendChild($this->createLangstring($row));
             $element->appendChild($node);
+        }
+
+        if ($this->educationalDifficulty) {
+            $addElement('difficulty', $this->educationalDifficulty['key'], $this->educationalDifficulty['value']);
         }
     }
 
