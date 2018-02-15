@@ -431,7 +431,9 @@ class NLLOM
 
         $technical = $domDocument->createElement('technical');
         $this->domSetTechnical($technical);
-        $root->appendChild($technical);
+        if ($technical->hasChildNodes()) {
+            $root->appendChild($technical);
+        }
 
         $educational = $domDocument->createElement('educational');
         $this->domSetEducational($educational);
@@ -609,18 +611,22 @@ class NLLOM
 
     private function domSetTechnical(\DOMElement $element)
     {
-        $node = $this->dom->createElement('format', $this->technicalFormat);
-        $element->appendChild($node);
+        if ($this->technicalFormat) {
+            $node = $this->dom->createElement('format', $this->technicalFormat);
+            $element->appendChild($node);
+        }
 
         if ($this->technicalSize) {
             $node = $this->dom->createElement('size', $this->technicalSize);
             $element->appendChild($node);
         }
 
-        $node = $this->dom->createElement('location');
-        $value = $this->dom->createTextNode($this->technicalLocation);
-        $node->appendChild($value);
-        $element->appendChild($node);
+        if ($this->technicalLocation) {
+            $node = $this->dom->createElement('location');
+            $value = $this->dom->createTextNode($this->technicalLocation);
+            $node->appendChild($value);
+            $element->appendChild($node);
+        }
 
         if ($this->technicalDuration) {
             $node = $this->dom->createElement('duration');

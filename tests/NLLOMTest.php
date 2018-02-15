@@ -147,4 +147,37 @@ VCARD;
 
         $this->assertEquals($correctResult, $result);
     }
+
+    public function testEmptyTechnical()
+    {
+        // Do not output spaces in document, so it's easier to match with correct xml file
+        $lom = new \Kennisnet\NLLOM\NLLOM([
+            'preserve_whitespace' => false,
+            'format_output' => false
+        ]);
+
+        $lom->setGeneralTitle('Test2');
+        $lom->setGeneralDescription('één beschrijving met speciale tekens');
+
+        $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
+        $lom->setGeneralAggregationLevel(2);
+
+        $lom->setLifecycleVersion('07122005 124436');
+
+        $dt = new \DateTime('1999-06-01');
+        $lom->setPublisher($dt);
+
+        $lom->setCreator($dt);
+        $lom->setMetametadataLanguage('nl');
+
+        $lom->setRightsCost('no');
+        $lom->setRightsCopyright('http://purl.edustandaard.nl/copyrightsandotherrestrictions_nllom_20110411', 'cc-by-30');
+        $lom->setRightsDescription('Anderen mogen het werk gebruiken');
+
+        $result = $lom->saveAsXML();
+
+        $correctResult = file_get_contents(__DIR__.'/result_no_technical.xml');
+
+        $this->assertEquals($correctResult, $result);
+    }
 }
