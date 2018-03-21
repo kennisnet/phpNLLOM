@@ -1,874 +1,107 @@
 <?php
+
 namespace Kennisnet\NLLOM;
 
-class NLLOM
+use Kennisnet\NLLOM\Library\LomContribute;
+
+class NLLOM extends Lom
 {
-    const XMLNS = "http://www.imsglobal.org/xsd/imsmd_v1p2";
-    const XMLNS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
-    const XSI_SCHEMALOCATION = "http://www.imsglobal.org/xsd/imsmd_v1p2 http://www.imsglobal.org/xsd/imsmd_v1p2p4.xsd";
-
-    const RELATION_VOCAB = 'http://purl.edustandaard.nl/relation_kind_nllom_20131211';
-
-    //General
-    private $generalTitle;
-    private $generalDescription;
-    private $generalLanguages = [];
-    private $generalAggregationLevel;
-    private $generalIdentifiers = [];
-    private $generalKeywords = [];
-
-    //Lifecycle
-    private $lifecycleVersion;
-    private $lifecycleStatus = [];
-    private $lifecycleAuthor = [];
-    private $lifecyclePublisher = [];
-
-    //Metametadate
-    private $metametadataCreator = [];
-    private $metametadataValidator = [];
-    private $metametadataLanguage;
-
-    //Technical
-    private $technicalFormat;
-    private $technicalSize;
-    private $technicalLocation;
-    private $technicalDuration = [];
-
-    //Educational
-    private $educationalLearningResourceTypes = [];
-    private $educationalIntendedUserRoles = [];
-    private $educationalContexts = [];
-    private $educationalTypicalAgeRanges = [];
-    private $educationalDifficulty = [];
-
-    //Rights
-    private $rightsCost;
-    private $rightsCopyright = [];
-    private $rightsDescription = [];
-
-    //Relations
-    private $relations = [];
-
-    private $publishers = [];
-
-
-    //Classification
-    private $classifications = [];
-
     /**
-     * @var \DOMDocument
+     * @return array
      */
-    private $dom;
-
-    private $options = [];
-
-    public function __construct($options = [])
+    public function getPublishers()
     {
-        $defaults = [
-            'validate' => true,
-            'debug' => false,
-            'lom_version' => 'LOMv1.0',
-            'lom_schema' => 'nl_lom_v1p0',
-            'preserve_whitespace' => true,
-            'format_output' => true
-        ];
-
-        $this->options = array_merge($defaults, $options);
+        return self::getEntities($this->getLifecycleContributors(), 'publisher');
     }
 
     /**
-     * @param $keyword
+     * @return \DateTime
      */
-    public function addGeneralKeyword($keyword)
+    public function getPublishDate()
     {
-        $this->generalKeywords[] = $keyword;
+        foreach ($this->getLifecycleContributors() as $contributor) {
+            if ($contributor->getRole()->getValue() === 'publisher') {
+                if ($contributor->getDateTime()) {
+                    return (new \DateTime((string)$contributor->getDateTime()->getDateTime()));
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Add identifier
-     *
-     * Example: 'uri', 'urn:uuid:foo-bar'
-     *
-     * @param $key
-     * @param $value
+     * @return array
      */
-    public function addGeneralIdentifier($key, $value)
+    public function getAuthors()
     {
-        $this->generalIdentifiers[] = [
-            'key' => $key,
-            'value' => $value
-        ];
-    }
-
-    public function addGeneralLanguage($value)
-    {
-        $this->generalLanguages[] = $value;
+        return self::getEntities($this->getLifecycleContributors(), 'author');
     }
 
     /**
-     * @param $kind
-     * @param $uri
-     * @param $value
-     * @param array $descriptions
+     * @return array
      */
-    public function addRelation($kind, $uri, $value, array $descriptions = [])
+    public function getCreators()
     {
-        $this->relations[] = [
-            'kind' => $kind,
-            'uri' => $uri,
-            'value' => $value,
-            'descriptions' => $descriptions
-        ];
-    }
-
-    public function setGeneralAggregationLevel($value)
-    {
-        $this->generalAggregationLevel = $value;
+        return self::getEntities($this->getMetaMetadataContributors(), 'creator');
     }
 
     /**
-     * @param $title
+     * @return array
      */
-    public function setGeneralTitle($title)
+    public function getContentProviders()
     {
-        $this->generalTitle = $title;
+        return self::getEntities($this->getLifecycleContributors(), 'content provider');
     }
 
     /**
-     * @param $description
+     * @return string|null
      */
-    public function setGeneralDescription($description)
+    public function getThumbnail()
     {
-        $this->generalDescription = $description;
+        foreach ($this->getRelations() as $relation) {
+            if ($relation->getKind()) {
+                switch ($relation->getKind()->getValue()) {
+                    case 'thumbnail':
+                        return $relation->getResources()[0]->getEntry();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
-     * @param mixed $lifecycleVersion
-     */
-    public function setLifecycleVersion($lifecycleVersion)
-    {
-        $this->lifecycleVersion = $lifecycleVersion;
-    }
-
-    /**
-     * @param array $lifecycleStatus
-     */
-    public function setLifecycleStatus($lifecycleStatus)
-    {
-        $this->lifecycleStatus = $lifecycleStatus;
-    }
-
-    /**
-     * Set author
-     *
-     * $description is only valid in combination with a datetime value
-     *
-     * @param $vcard
-     * @param \DateTime $datetime
-     * @param string $description
-     * @param string $language
-     */
-    public function setLifecycleAuthor(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->lifecycleAuthor = [
-            'vcard' => $vcard,
-            'datetime' => $datetime,
-            'description' => $description,
-            'language' => $language
-        ];
-    }
-
-    //Alias
-    public function setAuthor(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->setLifecycleAuthor($datetime, $vcard, $description, $language);
-    }
-
-    /**
-     * Set publisher
-     *
-     * $description is only valid in combination with a datetime value
-     *
-     * @param \DateTime $datetime
-     * @param string $vcard
-     * @param string $description
-     * @param string $language
-     */
-    public function setLifecyclePublisher(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->lifecyclePublisher = [
-            'vcard' => $vcard,
-            'datetime' => $datetime,
-            'description' => $description,
-            'language' => $language
-        ];
-    }
-
-    //Alias
-    public function setPublisher(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->setLifecyclePublisher($datetime, $vcard, $description, $language);
-    }
-
-
-    /**
-     * Set creator
-     *
-     * $description is only valid in combination with a datetime value
-     *
-     * @param $vcard
-     * @param \DateTime $datetime
-     * @param string $description
-     * @param string $language
-     */
-    public function setMetametadataCreator(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->metametadataCreator = [
-            'vcard' => $vcard,
-            'datetime' => $datetime,
-            'description' => $description,
-            'language' => $language
-        ];
-    }
-
-    //Alias
-    public function setCreator(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->setMetametadataCreator($datetime, $vcard, $description, $language);
-    }
-
-    /**
-     * Set validator
-     *
-     * $description is only valid in combination with a datetime value
-     *
-     * @param $vcard
-     * @param \DateTime $datetime
-     * @param string $description
-     * @param string $language
-     */
-    public function setMetametadataValidator(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->metametadataValidator = [
-            'vcard' => $vcard,
-            'datetime' => $datetime,
-            'description' => $description,
-            'language' => $language
-        ];
-    }
-
-    //Alias
-    public function setValidator(\DateTime $datetime, $vcard = '', $description = '', $language = 'nl')
-    {
-        $this->setMetametadataValidator($datetime, $vcard, $description, $language);
-    }
-
-
-    public function setMetametadataLanguage($value)
-    {
-        $this->metametadataLanguage = $value;
-    }
-
-    /**
-     * @param $value
-     */
-    public function setTechnicalFormat($value)
-    {
-        $this->technicalFormat = $value;
-    }
-
-    /**
-     * @param $value
-     */
-    public function setTechnicalSize($value)
-    {
-        $this->technicalSize = $value;
-    }
-
-    /**
-     * @param $value
-     */
-    public function setTechnicalLocation($value)
-    {
-        $this->technicalLocation = $value;
-    }
-
-    /**
-     * @param $datetime
-     * @param string $description
-     * @param string $language
-     */
-    public function setTechnicalDuration($datetime, $description = '', $language = 'nl')
-    {
-        $this->technicalDuration = [
-            'datetime' => $datetime,
-            'description' => $description,
-            'language' => $language
-        ];
-    }
-
-    public function addEducationalLearningResourceType($key, $value)
-    {
-        $this->educationalLearningResourceTypes[] = [
-            'key' => $key,
-            'value' => $value
-        ];
-    }
-
-    public function addEducationaIntendedUserRole($value)
-    {
-        $this->educationalIntendedUserRoles[] = $value;
-    }
-
-    public function addEducationalContext($key, $value)
-    {
-        $this->educationalContexts[] = [
-            'key' => $key,
-            'value' => $value
-        ];
-    }
-
-    public function addEducationalTypicalAgeRange($value)
-    {
-        $this->educationalTypicalAgeRanges[] = $value;
-    }
-
-    public function setEducationalDifficulty($source, $value)
-    {
-        $this->educationalDifficulty = [
-            'key' => $source,
-            'value' => $value
-        ];
-    }
-
-    public function setRightsCost($value)
-    {
-        $this->rightsCost = $value;
-    }
-
-    public function setRightsCopyright($source, $value)
-    {
-        $this->rightsCopyright = [
-            'key' => $source,
-            'value' => $value
-        ];
-    }
-
-    public function setRightsDescription($value, $language = 'nl')
-    {
-        $this->rightsDescription = [
-            'value' => $value,
-            'language' => $language
-        ];
-    }
-
-    /**
-     * Add classification
-     *
-     * Datastructure:
-     *
-     * $purpose = [
-     *   'source' => '',
-     *   'value' => ''
-     *   ];
-     *
-     * $taxonpaths = [
-     *  'source' => '',
-     *  'taxons' => [
-     *    'id' => '',
-     *    'value' => '',
-     *    'language' => 'nl'
-     *   ]
-     * ];
-     *
-     *
-     * @param array $purpose
-     * @param array $taxonpaths
-     */
-    public function addClassification(array $purpose, array $taxonpaths = [])
-    {
-        $this->classifications[] = [
-            'purpose' => $purpose,
-            'taxonpaths' => $taxonpaths,
-        ];
-    }
-
-
-    /**
-     * Get XML from DOM
-     *
+     * @param $entity
      * @return string
-     * @throws \Exception
      */
-    public function saveAsXML()
+    private static function parseEntity($entity)
     {
-        $domDocument = new \DOMDocument('1.0', 'UTF-8');
+        $matches = [];
 
-        $this->dom = $domDocument;
+        // Check for both FN: and N: format, and fetch the first match
+        preg_match_all('/^(F)?N:(.*?)$/m', $entity, $matches);
 
-        $domDocument->formatOutput = $this->options['format_output'];
-        $domDocument->preserveWhiteSpace = $this->options['preserve_whitespace'];
-
-        $root = $domDocument->createElementNS(self::XMLNS, 'lom');
-        $root = $domDocument->appendChild($root);
-        $root->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-        $root->setAttributeNS('http://www.w3.org/2001/XMLSchema-instance', 'schemaLocation', self::XSI_SCHEMALOCATION);
-
-        $general = $domDocument->createElement('general');
-        $this->domSetTitle($general);
-        $this->domAddIdentifiers($general);
-        $this->domLanguages($general);
-        $this->domSetDescription($general);
-        $this->domAddKeywords($general);
-        $this->domSetAggregationLevel($general);
-        $root->appendChild($general);
-
-        $this->domSetLifecycle($root);
-
-        $metametadata = $domDocument->createElement('metametadata');
-        $this->domSetMetametadata($metametadata);
-        $root->appendChild($metametadata);
-
-        $technical = $domDocument->createElement('technical');
-        $this->domSetTechnical($technical);
-        if ($technical->hasChildNodes()) {
-            $root->appendChild($technical);
-        }
-
-        $educational = $domDocument->createElement('educational');
-        $this->domSetEducational($educational);
-        $root->appendChild($educational);
-
-        $rights = $domDocument->createElement('rights');
-        $this->domSetRights($rights);
-        $root->appendChild($rights);
-
-        $this->domAddRelations($root);
-
-        $this->domAddClassifications($root);
-
-        $xml = $domDocument->saveXML();
-
-        if ($this->options['debug']) {
-            self::writeDebug($xml);
-        }
-
-        if ($this->options['validate']) {
-            Validator::validate($xml);
-
-            if ($this->options['debug']) self::writeDebug('Validation success');
-        }
-
-        return $xml;
+        return isset($matches[2][0]) ? $matches[2][0] : '';
     }
 
     /**
-     * @return \DOMDocument
+     * @param LomContribute[] $contributors
+     * @param string $type
+     * @return array
      */
-    public function getDom()
+    private static function getEntities($contributors, $type)
     {
-        return $this->dom;
-    }
+        $entities = [];
 
-    private function domAddIdentifiers(\DOMElement $general)
-    {
-        foreach ($this->generalIdentifiers as $identifier) {
-            $catalogentry = $this->dom->createElement('catalogentry');
-
-            $node = $this->dom->createElement('catalog', $identifier["key"]);
-            $catalogentry->appendChild($node);
-
-            $entry = $this->dom->createElement('entry');
-            $entry->appendChild($this->createLangstring($identifier["value"]));
-
-            $catalogentry->appendChild($entry);
-
-            $general->appendChild($catalogentry);
-        }
-    }
-
-    /**
-     * Add keywords to DomElement
-     *
-     * @param \DOMElement $element
-     * @param string $language
-     */
-    private function domAddKeywords(\DOMElement $element, $language = 'nl')
-    {
-        foreach ($this->generalKeywords as $value) {
-
-            $keyword = $this->dom->createElement('keyword');
-            $keyword->appendChild($this->createLangstring($value, $language));
-
-            $element->appendChild($keyword);
-        }
-    }
-
-    /**
-     * @param \DOMElement $element
-     */
-    private function domLanguages(\DOMElement $element)
-    {
-        foreach ($this->generalLanguages as $language) {
-            $node = $this->dom->createElement('language', $language);
-            $element->appendChild($node);
-        }
-    }
-
-    //TODO check required
-    /**
-     * @param \DOMElement $element
-     *
-     * Conditional Fields
-     * Rule
-     * Page
-     * 5.6 Context    Gebruik is OPTIONEEL wanneer in veld 5.6 een ander vocabulaire dan http://purl.edustandaard.nl/vdex_context_czp_20060628.xml wordt gebruikt.    Aggregatieniveau andere contexten
-     * 5.6 Context    Gebruik is AANBEVOLEN wanneer in veld 5.6 het vocabulaire http://purl.edustandaard.nl/vdex_context_czp_20060628.xml wordt gebruikt met een van de volgende waarden HBO|WO|bedrijfsopleiding.    Aggregatieniveau HO
-     * 5.6 Context    Gebruik is VERPLICHT wanneer in veld 5.6 het vocabulaire http://purl.edustandaard.nl/vdex_context_czp_20060628.xml wordt gebruikt met een van de volgende waarden PO|VO|BVE|SO|SBaO|VVE.
-     */
-    private function domSetAggregationLevel(\DOMElement $element)
-    {
-        if ($this->generalAggregationLevel) {
-
-            $level = $this->dom->createElement('aggregationlevel');
-
-            $node = $this->dom->createElement('source');
-            $node->appendChild($this->createLangstring($this->options['lom_version']));
-            $level->appendChild($node);
-
-            $node = $this->dom->createElement('value');
-            $node->appendChild($this->createLangstring($this->generalAggregationLevel));
-            $level->appendChild($node);
-
-            $element->appendChild($level);
-        }
-
-    }
-
-    private function domSetLifecycle(\DomNode $root)
-    {
-        $lifecycle = $this->dom->createElement('lifecycle');
-
-        if ($this->lifecycleVersion) {
-            $node = $this->dom->createElement('version');
-            $node->appendChild($this->createLangstring($this->lifecycleVersion));
-            //$node = $this->createLangstring($this->lifecycleVersion);
-            $lifecycle->appendChild($node);
-        }
-
-        if ($this->lifecycleStatus) {
-            $node = $this->dom->createElement('status');
-            $src = $this->dom->createElement('source');
-            $val = $this->dom->createElement('value');
-
-            $src->appendChild($this->createLangstring($this->options['lom_version']));
-            $val->appendChild($this->createLangstring($this->lifecycleStatus));
-
-            $node->appendChild($src);
-            $node->appendChild($val);
-
-            $lifecycle->appendChild($node);
-        }
-
-        if ($this->lifecycleAuthor) {
-            $node = $this->createContributor('author', $this->lifecycleAuthor);
-            $lifecycle->appendChild($node);
-        }
-
-        if ($this->lifecyclePublisher) {
-            $node = $this->createContributor('publisher', $this->lifecyclePublisher);
-            $lifecycle->appendChild($node);
-        }
-
-        if ($lifecycle->hasChildNodes()) {
-            $root->appendChild($lifecycle);
-        }
-    }
-
-    private function domSetMetametadata(\DomNode $root)
-    {
-        if ($this->metametadataCreator) {
-            $node = $this->createContributor('creator', $this->metametadataCreator);
-            $root->appendChild($node);
-        }
-
-        if ($this->metametadataValidator) {
-            $node = $this->createContributor('validator', $this->metametadataValidator);
-            $root->appendChild($node);
-        }
-
-        $node = $this->dom->createElement('metadatascheme', $this->options['lom_version']);
-        $root->appendChild($node);
-
-        $node = $this->dom->createElement('metadatascheme', $this->options['lom_schema']);
-        $root->appendChild($node);
-
-        if ($this->metametadataLanguage) {
-            $node = $this->dom->createElement('language', $this->metametadataLanguage);
-            $root->appendChild($node);
-        }
-    }
-
-    private function domSetTechnical(\DOMElement $element)
-    {
-        if ($this->technicalFormat) {
-            $node = $this->dom->createElement('format', $this->technicalFormat);
-            $element->appendChild($node);
-        }
-
-        if ($this->technicalSize) {
-            $node = $this->dom->createElement('size', $this->technicalSize);
-            $element->appendChild($node);
-        }
-
-        if ($this->technicalLocation) {
-            $node = $this->dom->createElement('location');
-            $value = $this->dom->createTextNode($this->technicalLocation);
-            $node->appendChild($value);
-            $element->appendChild($node);
-        }
-
-        if ($this->technicalDuration) {
-            $node = $this->dom->createElement('duration');
-            $dt = $this->dom->createElement('datetime', $this->technicalDuration['datetime']);
-            $desc = $this->dom->createElement('description');
-            $desc->appendChild($this->createLangstring($this->technicalDuration['description'], $this->technicalDuration['language']));
-
-            $node->appendChild($dt);
-            $node->appendChild($desc);
-
-            $element->appendChild($node);
-        }
-    }
-
-    private function domSetEducational(\DOMElement $element)
-    {
-        $addElement = function ($name, $key, $value) use ($element) {
-            $role = $this->dom->createElement($name);
-
-            $src = $this->dom->createElement('source');
-            $val = $this->dom->createElement('value');
-
-            $src->appendChild($this->createLangstring($key));
-            $val->appendChild($this->createLangstring($value));
-
-            $role->appendChild($src);
-            $role->appendChild($val);
-
-            $element->appendChild($role);
-        };
-
-
-        foreach ($this->educationalLearningResourceTypes as $row) {
-            $addElement('learningresourcetype', $row['key'], $row['value']);
-        }
-
-        foreach ($this->educationalIntendedUserRoles as $row) {
-            $addElement('intendedenduserrole', $this->options['lom_version'], $row);
-        }
-
-        foreach ($this->educationalContexts as $row) {
-            $addElement('context', $row['key'], $row['value']);
-        }
-
-        foreach ($this->educationalTypicalAgeRanges as $row) {
-            $node = $this->dom->createElement('typicalagerange');
-            $node->appendChild($this->createLangstring($row));
-            $element->appendChild($node);
-        }
-
-        if ($this->educationalDifficulty) {
-            $addElement('difficulty', $this->educationalDifficulty['key'], $this->educationalDifficulty['value']);
-        }
-    }
-
-    private function domSetRights(\DomElement $element)
-    {
-        $node = $this->createSourceValueElement('cost', $this->options['lom_version'], $this->rightsCost);
-        $element->appendChild($node);
-
-        $node = $this->createSourceValueElement('copyrightandotherrestrictions', $this->rightsCopyright['key'], $this->rightsCopyright['value']);
-        $element->appendChild($node);
-
-        if ($this->rightsDescription) {
-            $node = $this->dom->createElement('description');
-            $node->appendChild($this->createLangstring($this->rightsDescription['value'], $this->rightsDescription['language']));
-            $element->appendChild($node);
-        }
-    }
-
-
-    private function domAddRelations(\DOMNode $root)
-    {
-        foreach ($this->relations as $relation) {
-
-            $relationNode = $this->dom->createElement('relation');
-
-            $kind = $this->createSourceValueElement('kind', self::RELATION_VOCAB, $relation['kind']);
-            $relationNode->appendChild($kind);
-
-            $resource = $this->dom->createElement('resource');
-
-            if ($relation['descriptions']) {
-                $desc = $this->dom->createElement('description');
-
-                foreach($relation['descriptions'] as $description) {
-                    $desc->appendChild($this->createLangstring($description['value'], $description['language']));
+        foreach ($contributors as $contributor) {
+            if ($contributor->getRole()->getValue() === $type) {
+                if (isset($contributor->getEntities()[0])) {
+                    $entities[] = (self::parseEntity($contributor->getEntities()[0]->getValue()));
                 }
-
-                $resource->appendChild($desc);
             }
-
-            $catalogentry = $this->dom->createElement('catalogentry');
-
-            $node = $this->dom->createElement('catalog', $relation['uri']);
-            $catalogentry->appendChild($node);
-
-            $entry = $this->dom->createElement('entry');
-            $entry->appendChild($this->createLangstring($relation["value"]));
-
-            $catalogentry->appendChild($entry);
-
-            $resource->appendChild($catalogentry);
-
-            $relationNode->appendChild($resource);
-
-            $root->appendChild($relationNode);
-        }
-    }
-
-
-    private function domAddClassifications(\DOMNode $root)
-    {
-        foreach ($this->classifications as $row) {
-
-            $classification = $this->dom->createElement('classification');
-
-            $purpose = $this->createSourceValueElement('purpose', $row['purpose']['source'], $row['purpose']['value']);
-            $classification->appendChild($purpose);
-
-            foreach ($row['taxonpaths'] as $taxonpath) {
-                $node = $this->dom->createElement('taxonpath');
-                $src =  $this->dom->createElement('source');
-                $src->appendChild($this->createLangstring($taxonpath['source']));
-                $node->appendChild($src);
-
-                foreach ($taxonpath['taxons'] as $taxon) {
-                    $t = $this->dom->createElement('taxon');
-                    $id = $this->dom->createElement('id', $taxon['id']);
-                    $entry = $this->dom->createElement('entry');
-                    $entry->appendChild($this->createLangstring($taxon['value'], $taxon['language']));
-
-                    $t->appendChild($id);
-                    $t->appendChild($entry);
-
-                    $node->appendChild($t);
-                }
-
-                $classification->appendChild($node);
-            }
-
-            $root->appendChild($classification);
-        }
-    }
-
-    private function domSetTitle(\DOMElement $general, $language = 'nl')
-    {
-        $title = $this->dom->createElement('title');
-
-        $node = $this->dom->createElement('langstring', $this->generalTitle);
-        $node->setAttribute('xml:lang', $language);
-
-        $title->appendChild($node);
-
-        $general->appendChild($title);
-    }
-
-    private function domSetDescription(\DOMElement $general, $language = 'nl')
-    {
-        if ($this->generalDescription) {
-            $title = $this->dom->createElement('description');
-
-            $node = $this->dom->createElement('langstring', $this->generalDescription);
-            $node->setAttribute('xml:lang', $language);
-
-            $title->appendChild($node);
-
-            $general->appendChild($title);
         }
 
+        return $entities;
     }
-
-    private function createContributor($roleValue, array $data)
-    {
-        $node = $this->dom->createElement('contribute');
-        $role = $this->dom->createElement('role');
-
-        $src = $this->dom->createElement('source');
-        $val = $this->dom->createElement('value');
-
-        $src->appendChild($this->createLangstring($this->options['lom_version']));
-        $val->appendChild($this->createLangstring($roleValue));
-
-        $role->appendChild($src);
-        $role->appendChild($val);
-
-        $node->appendChild($role);
-
-        if ($data['vcard']) {
-            $centity = $this->dom->createElement('centity');
-            $vcard = $this->dom->createElement('vcard', $data['vcard']);
-            $centity->appendChild($vcard);
-
-            $node->appendChild($centity);
-        }
-
-        if ($data['datetime']) {
-            $date = $this->dom->createElement('date');
-            $dt = $this->dom->createElement('datetime', $data['datetime']->format('Y-m-d'));
-            $date->appendChild($dt);
-
-            if ($data['description']) {
-                $desc = $this->dom->createElement('description');
-                $desc->appendChild($this->createLangstring($data['description'], $data['language']));
-                $date->appendChild($desc);
-            }
-
-            $node->appendChild($date);
-        }
-
-        return $node;
-    }
-
-    private function createSourceValueElement($name, $key, $value)
-    {
-        $el = $this->dom->createElement($name);
-
-        $src = $this->dom->createElement('source');
-        $val = $this->dom->createElement('value');
-
-        $src->appendChild($this->createLangstring($key));
-        $val->appendChild($this->createLangstring($value));
-
-        $el->appendChild($src);
-        $el->appendChild($val);
-
-        return $el;
-    }
-
-
-    private function createLangstring($value, $language = 'x-none')
-    {
-        $node = $this->dom->createElement('langstring');
-        $value = $this->dom->createTextNode($value);
-        $node->appendChild($value);
-        $node->setAttribute('xml:lang', $language);
-        return $node;
-    }
-
-    private static function writeDebug($msg)
-    {
-        echo $msg . PHP_EOL;
-    }
-
 }
