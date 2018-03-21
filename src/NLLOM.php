@@ -472,14 +472,6 @@ class NLLOM
       return $xml;
     }
 
-    /**
-     * @return \DOMDocument
-     */
-    public function getDom()
-    {
-        return $this->dom;
-    }
-
     private function domAddIdentifiers(\DOMElement $general)
     {
         foreach ($this->generalIdentifiers as $identifier) {
