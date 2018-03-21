@@ -6,12 +6,13 @@ class NLLOM
     const XMLNS = "http://ltsc.ieee.org/xsd/LOM";
     const XSI_SCHEMALOCATION = "http://ltsc.ieee.org/xsd/LOM http://ltsc.ieee.org/xsd/lomv1.0/lom.xsd";
 
+    const RELATION_VOCAB = 'http://purl.edustandaard.nl/relation_kind_nllom_20131211';
+
     //General
     private $generalTitle;
     private $generalDescription;
     private $generalLanguages = [];
     private $generalAggregationLevel;
-    private $generalIdentifier;
     private $generalIdentifiers = [];
     private $generalKeywords = [];
 
@@ -37,6 +38,7 @@ class NLLOM
     private $educationalIntendedUserRoles = [];
     private $educationalContexts = [];
     private $educationalTypicalAgeRanges = [];
+    private $educationalDifficulty = [];
 
     //Rights
     private $rightsCost;
@@ -97,41 +99,24 @@ class NLLOM
         ];
     }
 
-    /**
-     * Set identifier
-     *
-     * This will be the first identifier in the LOM
-     *
-     * Example: 'uri', 'urn:uuid:foo-bar'
-     *
-     * @param $key
-     * @param $value
-     */
-    public function setGeneralIdentifier($key, $value)
-    {
-        $this->generalIdentifier = [
-            'key' => $key,
-            'value' => $value
-        ];
-    }
-
     public function addGeneralLanguage($value)
     {
         $this->generalLanguages[] = $value;
     }
 
     /**
-     * Add relation
-     *
-     * @param $key
+     * @param $kind
+     * @param $uri
      * @param $value
-     * @param string $description
+     * @param array $descriptions
      */
-    public function addRelation($key, $value, $description = '')
+    public function addRelation($kind, $uri, $value, array $descriptions = [])
     {
         $this->relations[] = [
-            'key' => $key,
-            'value' => $value
+            'kind' => $kind,
+            'uri' => $uri,
+            'value' => $value,
+            'descriptions' => $descriptions
         ];
     }
 
@@ -347,6 +332,14 @@ class NLLOM
         $this->educationalTypicalAgeRanges[] = $value;
     }
 
+    public function setEducationalDifficulty($source, $value)
+    {
+        $this->educationalDifficulty = [
+            'key' => $source,
+            'value' => $value
+        ];
+    }
+
     public function setRightsCost($value)
     {
         $this->rightsCost = $value;
@@ -437,7 +430,9 @@ class NLLOM
 
         $technical = $domDocument->createElement('technical');
         $this->domSetTechnical($technical);
-        $root->appendChild($technical);
+        if ($technical->hasChildNodes()) {
+            $root->appendChild($technical);
+        }
 
         $educational = $domDocument->createElement('educational');
         $this->domSetEducational($educational);
@@ -447,9 +442,9 @@ class NLLOM
         $this->domSetRights($rights);
         $root->appendChild($rights);
 
-        $this->domAddClassifications($root);
+        $this->domAddRelations($root);
 
-        //$this->domAddRelations($domDocument, $root);
+        $this->domAddClassifications($root);
 
         return $domDocument;
     }
@@ -477,9 +472,17 @@ class NLLOM
       return $xml;
     }
 
+    /**
+     * @return \DOMDocument
+     */
+    public function getDom()
+    {
+        return $this->dom;
+    }
+
     private function domAddIdentifiers(\DOMElement $general)
     {
-        $addDom = function ($identifier) use ($general) {
+        foreach ($this->generalIdentifiers as $identifier) {
             $catalogentry = $this->dom->createElement('catalogentry');
 
             $node = $this->dom->createElement('catalog', $identifier["key"]);
@@ -491,12 +494,6 @@ class NLLOM
             $catalogentry->appendChild($entry);
 
             $general->appendChild($catalogentry);
-        };
-
-        $addDom($this->generalIdentifier);
-
-        foreach ($this->generalIdentifiers as $identifier) {
-            $addDom($identifier);
         }
     }
 
@@ -624,18 +621,22 @@ class NLLOM
 
     private function domSetTechnical(\DOMElement $element)
     {
-        $node = $this->dom->createElement('format', $this->technicalFormat);
-        $element->appendChild($node);
+        if ($this->technicalFormat) {
+            $node = $this->dom->createElement('format', $this->technicalFormat);
+            $element->appendChild($node);
+        }
 
         if ($this->technicalSize) {
             $node = $this->dom->createElement('size', $this->technicalSize);
             $element->appendChild($node);
         }
 
-        $node = $this->dom->createElement('location');
-        $value = $this->dom->createTextNode($this->technicalLocation);
-        $node->appendChild($value);
-        $element->appendChild($node);
+        if ($this->technicalLocation) {
+            $node = $this->dom->createElement('location');
+            $value = $this->dom->createTextNode($this->technicalLocation);
+            $node->appendChild($value);
+            $element->appendChild($node);
+        }
 
         if ($this->technicalDuration) {
             $node = $this->dom->createElement('duration');
@@ -685,6 +686,10 @@ class NLLOM
             $node->appendChild($this->createLangstring($row));
             $element->appendChild($node);
         }
+
+        if ($this->educationalDifficulty) {
+            $addElement('difficulty', $this->educationalDifficulty['key'], $this->educationalDifficulty['value']);
+        }
     }
 
     private function domSetRights(\DomElement $element)
@@ -703,52 +708,42 @@ class NLLOM
     }
 
 
-    private function domAddRelations(\DOMElement $element)
+    private function domAddRelations(\DOMNode $root)
     {
         foreach ($this->relations as $relation) {
 
-            $node = $this->dom->createElement('relation');
+            $relationNode = $this->dom->createElement('relation');
 
-            $kind = $this->createSourceValueElement('kind', 1, 1);
-            $node->appendChild($kind);
+            $kind = $this->createSourceValueElement('kind', self::RELATION_VOCAB, $relation['kind']);
+            $relationNode->appendChild($kind);
 
             $resource = $this->dom->createElement('resource');
 
+            if ($relation['descriptions']) {
+                $desc = $this->dom->createElement('description');
 
-            $template = <<<XML
-<relation>
-  <kind>
-    <source>
-      <langstring xml:lang="x-none">http://purl.edustandaard.nl/relation_kind_nllom_20131211</langstring>
-    </source>
-    <value>
-      <langstring xml:lang="x-none">{$relation['key']}</langstring>
-    </value>
-  </kind>
-  <resource>
-XML;
+                foreach($relation['descriptions'] as $description) {
+                    $desc->appendChild($this->createLangstring($description['value'], $description['language']));
+                }
 
-            if ($relation['description']) {
-                $template .= <<<XML
-    <description>
-      <langsting xml:lang="x-none">application/pdf</langstring>
-    </description>
-XML;
+                $resource->appendChild($desc);
             }
 
-            $template .= <<<XML
-    <catalogentry>
-      <catalog>URI</catalog>
-      <entry>
-        <langstring xml:lang="x-none">{$relation['value']}</langstring>
-      </entry>
-    </catalogentry>
-  </resource>
-</relation>
-XML;
+            $catalogentry = $this->dom->createElement('catalogentry');
 
-            $element->appendChild($node);
+            $node = $this->dom->createElement('catalog', $relation['uri']);
+            $catalogentry->appendChild($node);
 
+            $entry = $this->dom->createElement('entry');
+            $entry->appendChild($this->createLangstring($relation["value"]));
+
+            $catalogentry->appendChild($entry);
+
+            $resource->appendChild($catalogentry);
+
+            $relationNode->appendChild($resource);
+
+            $root->appendChild($relationNode);
         }
     }
 

@@ -15,7 +15,6 @@ class NLLOMTest extends TestCase
         $lom->setGeneralTitle('Test <strike>test</strike>');
         $lom->setGeneralDescription('één beschrijving met speciale tekens');
 
-        $lom->setGeneralIdentifier('uri', 'urn:uuid:foo-bar');
         $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
         $lom->addGeneralIdentifier('uri', 'https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1');
 
@@ -57,10 +56,33 @@ VCARD;
         $lom->addEducationaIntendedUserRole('learner');
         $lom->addEducationalContext('http://purl.edustandaard.nl/vdex_context_czp_20060628.xml', 'VO');
         $lom->addEducationalTypicalAgeRange('8-13');
+        $lom->setEducationalDifficulty('http://purl.edustandaard.nl/vdex_difficulty_lomv1p0_20060628.xml', 'very easy');
 
         $lom->setRightsCost('no');
         $lom->setRightsCopyright('http://purl.edustandaard.nl/copyrightsandotherrestrictions_nllom_20110411', 'cc-by-30');
         $lom->setRightsDescription('Anderen mogen het werk gebruiken');
+
+        $lom->addRelation('embed', 'uri', 'http://www.vimdeo.com/dummy1', [
+            [
+                'language' => 'nl',
+                'value' => 'Test 1'
+            ],
+            [
+                'language' => 'en',
+                'value' => 'Test 2'
+            ],
+        ]);
+
+        $lom->addRelation('basedon', 'uri', 'http://www.vimdeo.com/dummy2', [
+            [
+                'language' => 'nl',
+                'value' => 'Test 3'
+            ],
+            [
+                'language' => 'en',
+                'value' => 'Test 4'
+            ],
+        ]);
 
         $lom->addClassification([
             'source' => 'http://download.edustandaard.nl/vdex/vdex_classification_purpose_czp_20060628.xml',
@@ -122,6 +144,39 @@ VCARD;
         fwrite($fh, $result);
         fclose($fh);
         */
+
+        $this->assertEquals($correctResult, $result);
+    }
+
+    public function testEmptyTechnical()
+    {
+        // Do not output spaces in document, so it's easier to match with correct xml file
+        $lom = new \Kennisnet\NLLOM\NLLOM([
+            'preserve_whitespace' => false,
+            'format_output' => false
+        ]);
+
+        $lom->setGeneralTitle('Test2');
+        $lom->setGeneralDescription('één beschrijving met speciale tekens');
+
+        $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
+        $lom->setGeneralAggregationLevel(2);
+
+        $lom->setLifecycleVersion('07122005 124436');
+
+        $dt = new \DateTime('1999-06-01');
+        $lom->setPublisher($dt);
+
+        $lom->setCreator($dt);
+        $lom->setMetametadataLanguage('nl');
+
+        $lom->setRightsCost('no');
+        $lom->setRightsCopyright('http://purl.edustandaard.nl/copyrightsandotherrestrictions_nllom_20110411', 'cc-by-30');
+        $lom->setRightsDescription('Anderen mogen het werk gebruiken');
+
+        $result = $lom->saveAsXML();
+
+        $correctResult = file_get_contents(__DIR__.'/result_no_technical.xml');
 
         $this->assertEquals($correctResult, $result);
     }

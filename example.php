@@ -19,8 +19,6 @@ $lom = new NLLOM([
 
 $lom->setGeneralTitle('Test <strike>test</strike>');
 $lom->setGeneralDescription('één beschrijving met speciale tekens');
-
-$lom->setGeneralIdentifier('uri', 'urn:uuid:foo-bar');
 $lom->addGeneralIdentifier('uri', 'urn:isbn:9789034553966');
 
 $lom->addGeneralLanguage('nl');
@@ -65,6 +63,7 @@ $lom->addEducationalLearningResourceType('http://purl.edustandaard.nl/vdex_learn
 $lom->addEducationaIntendedUserRole('learner');
 $lom->addEducationalContext('http://purl.edustandaard.nl/vdex_context_czp_20060628.xml', 'VO');
 $lom->addEducationalTypicalAgeRange('8-13');
+$lom->setEducationalDifficulty('http://purl.edustandaard.nl/vdex_difficulty_lomv1p0_20060628.xml', 'very easy');
 
 $lom->setRightsCost('no');
 $lom->setRightsCopyright('http://purl.edustandaard.nl/copyrightsandotherrestrictions_nllom_20110411', 'cc-by-30');
