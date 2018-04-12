@@ -29,12 +29,13 @@ class Validator
 
     /**
      * @param $xml
+     * @return bool
      */
     public static function validate($xml)
     {
         $domDocumentValidate = new \DOMDocument('1.0', 'UTF-8');
         $domDocumentValidate->loadXML($xml);
 
-        $domDocumentValidate->schemaValidate('xsd/imsmd_v1p2p4.xsd');
+        return $domDocumentValidate->schemaValidate('xsd/imsmd_v1p2p4.xsd');
     }
 }
