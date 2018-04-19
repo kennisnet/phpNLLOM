@@ -171,7 +171,6 @@ class LomToDomMapper
     {
         foreach ($this->nllom->getGeneralLanguages() as $language) {
             $node = $this->dom->createElement('language', $language);
-            //$node = $this->dom->createElement('language', $language->getValue());
             $element->appendChild($node);
         }
     }

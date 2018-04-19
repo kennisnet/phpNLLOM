@@ -266,15 +266,18 @@ class Lom
     }
 
     /**
-     * @param $value
+     * @param LomString
      * @return $this
      */
-    public function addGeneralLanguage($value)
+    public function addGeneralLanguage(LomString $value)
     {
         $this->generalLanguages[] = $value;
         return $this;
     }
 
+    /**
+     * @return LomString[]
+     */
     public function getGeneralLanguages()
     {
         return $this->generalLanguages;
@@ -798,15 +801,18 @@ class Lom
     }
 
     /**
-     * @param $value
+     * @param LomString
      * @return $this
      */
-    public function addEducationalLanguage($value)
+    public function addEducationalLanguage(LomString $value)
     {
         $this->educationalLanguages[] = $value;
         return $this;
     }
 
+    /**
+     * @return LomString[]
+     */
     public function getEducationalLanguages()
     {
         return $this->educationalLanguages;

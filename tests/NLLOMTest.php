@@ -50,8 +50,8 @@ class NLLOMTest extends TestCase
                     'uri',
                     'https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1')
             )
-            ->addGeneralLanguage('nl')
-            ->addGeneralLanguage('en')
+            ->addGeneralLanguage(new LomString('nl'))
+            ->addGeneralLanguage(new LomString('en'))
             ->addGeneralKeyword(new LomMultiLanguage([
                 new LomLanguageString('Nederlands'),
                 new LomLanguageString('Dutch', 'en')
