@@ -1,9 +1,10 @@
 # NL LOM
 
-NL LOM is het Nederlandse applicatieprofiel van LOM. Dit profiel is tot stand gekomen na een project van 
-Stichting Kennisnet en SURFfoundation. 
-Hierin zijn de afspraken Content-zoekprofiel en LORElom geharmoniseerd tot é overkoepelende metadataafspraak voor het 
-Nederlands onderwijs op basis van IEEE-LOM.
+NL LOM is the Dutch applicationprofile of LOM. This profile was constructed after a project by 
+Stichting Kennisnet and SURFfoundation. 
+
+In NL LOM the agreements 'Content-zoekprofiel' and 'LORElom' are merged to form a metadata agreement for 
+Dutch education based on IEEE-LOM.
 
 ## Summary
 
