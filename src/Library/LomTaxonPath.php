@@ -5,7 +5,7 @@ namespace Kennisnet\NLLOM\Library;
 class LomTaxonPath
 {
     /**
-     * @var LomString[]
+     * @var LomString
      */
     private $source;
 
@@ -28,7 +28,7 @@ class LomTaxonPath
     }
 
     /**
-     * @return LomString[]
+     * @return LomString
      */
     public function getSource()
     {
