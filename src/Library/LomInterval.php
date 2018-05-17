@@ -19,6 +19,13 @@ class LomInterval
     const MINUTES_CODE = 'M';
     const SECONDS_CODE = 'S';
 
+    const SECONDS_PER_MINUTE = 60;
+    const MINUTES_PER_HOUR = 60;
+    const HOURS_PER_DAY = 24;
+    const DAYS_PER_YEAR = 365;
+    const DAYS_PER_MONTH = 30;
+    const MONTHS_PER_YEAR = 12;
+
     private $hours;
     private $minutes;
     private $seconds;
@@ -73,13 +80,13 @@ class LomInterval
                 $matches
             )
             ) {
-                $duration->hours += $matches[1] * LomDurationComparer::DAYS_PER_YEAR * LomDurationComparer::HOURS_PER_DAY;
+                $duration->hours += $matches[1] * self::DAYS_PER_YEAR * self::HOURS_PER_DAY;
             }
             if (preg_match('/(\d+)' . self::MONTHS_CODE . '/', $date, $matches)) {
-                $duration->hours += $matches[1] * LomDurationComparer::DAYS_PER_MONTH * LomDurationComparer::HOURS_PER_DAY;
+                $duration->hours += $matches[1] * self::DAYS_PER_MONTH * self::HOURS_PER_DAY;
             }
             if (preg_match('/(\d+)' . self::DAYS_CODE . '/', $date, $matches)) {
-                $duration->hours += $matches[1] * LomDurationComparer::HOURS_PER_DAY;
+                $duration->hours += $matches[1] * self::HOURS_PER_DAY;
             }
 
             if (preg_match('/(\d+)' . self::HOURS_CODE . '/', $time, $matches)) {
