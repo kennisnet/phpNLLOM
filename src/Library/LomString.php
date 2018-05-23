@@ -15,7 +15,7 @@ class LomString
 
     public function getValue()
     {
-        return $this->value;
+        return (string) $this->value;
     }
 
     public function __toString()

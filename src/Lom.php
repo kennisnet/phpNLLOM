@@ -550,7 +550,7 @@ class Lom
      */
     public function setTechnicalSize(LomString $value)
     {
-        if ((int)$value->getValue() === 0) {
+        if (!ctype_digit($value->getValue())) {
             throw new \Exception('Invalid value');
         }
 

@@ -384,12 +384,21 @@ VCARD;
         $this->assertEquals($nllom, $lom);
     }
 
-    public function testInvalidValue()
+    public function testInvalidTechnicalValue()
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Invalid value');
         $lom = new NLLOM();
-        $lom->setTechnicalSize(new LomString('bla'));
+        $lom->setTechnicalSize(new LomString('foobar'));
+    }
+
+    public function testValidTechnicalValue()
+    {
+        $lom = new NLLOM();
+        $lom->setTechnicalSize(new LomString('0'));
+        $lom->setTechnicalSize(new LomString(0));
+
+        $this->assertEquals('0', $lom->getTechnicalSize()->getValue());
     }
 
     public function testDuplicateCatalog()
