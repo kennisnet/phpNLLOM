@@ -56,7 +56,12 @@ class LomInterval
             $matches
         )
         ) {
-            $date = ($matches[1] === '' ? null : $matches[1]);
+
+            $date = null;
+            if (isset($matches[1])) {
+                $date = ($matches[1] === '' ? null : $matches[1]);
+            }
+
             $time = array_key_exists(2, $matches) ? substr($matches[2], 1) : null;
 
             if ($date !== null && !preg_match(
