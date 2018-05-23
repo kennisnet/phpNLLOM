@@ -75,12 +75,12 @@ class NLLOM extends Lom
      * @param $entity
      * @return string
      */
-    private static function parseEntity($entity)
+    public static function parseEntity($entity)
     {
         $matches = [];
 
         // Check for both FN: and N: format, and fetch the first match
-        preg_match_all('/^(F)?N:(.*?)$/m', $entity, $matches);
+        preg_match_all('/^(F?N|ORG):(.*?)$/m', $entity, $matches);
 
         return isset($matches[2][0]) ? $matches[2][0] : '';
     }

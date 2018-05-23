@@ -402,6 +402,43 @@ VCARD;
         $this->assertEquals(2, count($lom->getGeneralIdentifiers()));
     }
 
+    public function testEntityParsing()
+    {
+        $entity1 = <<<TEST1
+BEGIN:VCARD
+N:Friday;Joe
+FN:Joe Friday
+TEL:+1-919-555-7878
+TITLE:Area Administrator\, Assistant
+EMAIL;TYPE=INTERNET:jfriday@host.com
+ORG:The Company
+VERSION:3.0
+END:VCARD';
+TEST1;
+
+        $entity2 = <<<TEST1
+BEGIN:VCARD
+TEL:+1-919-555-7878
+TITLE:Area Administrator\, Assistant
+EMAIL;TYPE=INTERNET:jfriday@host.com
+ORG:The Company
+VERSION:3.0
+END:VCARD';
+TEST1;
+
+        $entity3 = <<<TEST1
+BEGIN:VCARD
+VERSION: 3.0
+FN:Rijksinstituut voor Natuurbeheer
+ORG:Rijksinstituut voor Natuurbeheer
+END:VCARD
+TEST1;
+
+        $this->assertEquals('Friday;Joe', NLLOM::parseEntity($entity1));
+        $this->assertEquals('The Company', NLLOM::parseEntity($entity2));
+        $this->assertEquals('Rijksinstituut voor Natuurbeheer', NLLOM::parseEntity($entity3));
+    }
+
     /**
      * Format expected result in same way as results
      * @param $filename
