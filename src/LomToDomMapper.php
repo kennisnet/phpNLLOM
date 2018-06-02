@@ -397,6 +397,12 @@ class LomToDomMapper
                 $classification->appendChild($node);
             }
 
+            foreach($classificationRow->getKeywords() as $keyword){
+                $kw = $this->dom->createElement('keyword');
+                $kw->appendChild($this->createLangstring($keyword));
+                $classification->appendChild($kw);
+            }
+
             $root->appendChild($classification);
         }
     }

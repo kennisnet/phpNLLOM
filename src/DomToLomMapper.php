@@ -397,9 +397,16 @@ class DomToLomMapper
                 );
             }
 
+            $keywords = [];
+            foreach ($this->query('lom:keyword', [], $classification) as $keyword) {
+                $sourceValue = $this->xp->evaluate('normalize-space(lom:langstring)', $keyword);
+                $keywords[] = new LomString($sourceValue);
+            }
+
             $classifications[] = new LomClassification(
                 $purpose,
-                $taxonpaths
+                $taxonpaths,
+                $keywords
             );
 
         }
@@ -455,7 +462,7 @@ class DomToLomMapper
 
     public function getMetaMetadataIdentifiers()
     {
-        $query = '/lom:lom/lom:metametadata/lom:catalogentry[lom:catalog[normalize-space(.) != \'\'] and 
+        $query = '/lom:lom/lom:metametadata/lom:catalogentry[lom:catalog[normalize-space(.) != \'\'] and
             lom:entry/lom:langstring[normalize-space(.) != \'\']]';
 
         return $this->mapIdentifiers($query);
@@ -474,7 +481,7 @@ class DomToLomMapper
                 $relation
             );
 
-            $query = 'lom:resource/lom:catalogentry[lom:catalog[normalize-space(.) != \'\'] and 
+            $query = 'lom:resource/lom:catalogentry[lom:catalog[normalize-space(.) != \'\'] and
                 lom:entry/lom:langstring[normalize-space(.) != \'\']]';
             $catalogEntries = $this->mapIdentifiers($query, $relation);
 
@@ -743,7 +750,7 @@ class DomToLomMapper
             ) as $intendedenduserrole) {
                 $clone = $intendedenduserrole->cloneNode(true);
 
-                $xpath = '(lom:context | lom:typicalagerange | lom:difficulty | 
+                $xpath = '(lom:context | lom:typicalagerange | lom:difficulty |
                     lom:typicallearningtime | lom:description | lom:language)[1]';
 
                 $nl = $this->query(
