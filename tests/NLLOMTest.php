@@ -221,7 +221,8 @@ VCARD;
                             )
                         ]
                     )
-                ]
+                ],
+                [new LomString('Taal')]
             )
         );
 
@@ -294,7 +295,6 @@ VCARD;
         $dom = $mapper->lomToDom($lom);
 
         $result = $dom->saveXML();
-
         $this->assertEquals($this->getExpectedXML('result.xml'), $result);
 
         Validator::validate($result);
