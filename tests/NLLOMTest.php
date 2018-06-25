@@ -278,10 +278,7 @@ VCARD;
                                 ])
                             ),
                             new LomTaxon(
-                                new LomString('vmbo_kl2'),
-                                new LomMultiLanguage([
-                                    new LomLanguageString('VMBO kaderberoepsgerichte leerweg, 2')
-                                ])
+                                new LomString('vmbo_kl2')
                             )
                         ]
                     )
@@ -343,10 +340,7 @@ VCARD;
                                 ])
                             ),
                             new LomTaxon(
-                                new LomString('vmbo_kl2'),
-                                new LomMultiLanguage([
-                                    new LomLanguageString('VMBO kaderberoepsgerichte leerweg, 2')
-                                ])
+                                new LomString('vmbo_kl2')
                             )
                         ]
                     ),

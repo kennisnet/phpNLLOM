@@ -16,9 +16,14 @@ class LomTaxon
      */
     private $taxonEntry;
 
+    /**
+     * LomTaxon constructor.
+     * @param LomString $id
+     * @param LomMultiLanguage|null $taxonEntry
+     */
     public function __construct(
         LomString $id,
-        LomMultiLanguage $taxonEntry
+        LomMultiLanguage $taxonEntry = null
     ) {
         $this->id = $id;
         $this->taxonEntry = $taxonEntry;

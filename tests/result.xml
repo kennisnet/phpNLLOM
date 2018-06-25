@@ -345,9 +345,6 @@ END:VCARD</vcard>
             </taxon>
             <taxon>
                 <id>vmbo_kl2</id>
-                <entry>
-                    <langstring xml:lang="nl">VMBO kaderberoepsgerichte leerweg, 2</langstring>
-                </entry>
             </taxon>
         </taxonpath>
     </classification>

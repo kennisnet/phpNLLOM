@@ -382,11 +382,11 @@ class DomToLomMapper
                 foreach ($this->query('lom:taxon', [], $taxonpath) as $taxon) {
                     $id = new LomString($this->xp->evaluate('normalize-space(lom:id)', $taxon));
 
-                    $entry = $this->getMultiLanguage('(lom:entry/lom:langstring)', [], $taxon);
-
-                    if (!$entry) {
+                    if (!$id) {
                         continue;
                     }
+
+                    $entry = $this->getMultiLanguage('(lom:entry/lom:langstring)', [], $taxon);
 
                     $taxons[] = new LomTaxon($id, $entry);
                 }

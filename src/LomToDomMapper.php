@@ -387,9 +387,11 @@ class LomToDomMapper
                 foreach ($taxonpath->getTaxons() as $taxon) {
                     $t = $this->dom->createElement('taxon');
                     $id = $this->dom->createElement('id', $taxon->getId());
-
                     $t->appendChild($id);
-                    $this->parseLomLanguageString($taxon->getTaxonEntry(), 'entry', $t);
+
+                    if ($taxon->getTaxonEntry()) {
+                        $this->parseLomLanguageString($taxon->getTaxonEntry(), 'entry', $t);
+                    }
 
                     $node->appendChild($t);
                 }

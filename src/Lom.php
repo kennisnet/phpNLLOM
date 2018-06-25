@@ -915,7 +915,9 @@ class Lom
     {
         foreach ($classification->getTaxonPaths() as $path) {
             foreach ($path->getTaxons() as $taxon) {
-                $this->setDefaultLanguage($taxon->getTaxonEntry());
+                if ($taxon->getTaxonEntry()) {
+                    $this->setDefaultLanguage($taxon->getTaxonEntry());
+                }
             }
         }
 
