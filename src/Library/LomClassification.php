@@ -16,17 +16,25 @@ class LomClassification
      */
     private $taxonPaths = [];
 
+     /**
+     * @var LomString[]
+     */
+    private $keywords = [];
+
     /**
      * LomClassification constructor.
      * @param LomTerm $purpose
      * @param LomTaxonPath[]
+     * @param LomString[]
      */
     public function __construct(
         LomTerm $purpose,
-        array $lomTaxonPaths
+        array $lomTaxonPaths,
+        array $keywords=[]
     ) {
         $this->purpose = $purpose;
         $this->taxonPaths = $lomTaxonPaths;
+        $this->keywords = $keywords;
     }
 
     /**
@@ -43,5 +51,13 @@ class LomClassification
     public function getTaxonPaths()
     {
         return $this->taxonPaths;
+    }
+
+    /**
+     * @return LomString[]
+     */
+    public function getKeywords()
+    {
+        return $this->keywords;
     }
 }

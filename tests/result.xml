@@ -305,6 +305,9 @@ END:VCARD</vcard>
                 </entry>
             </taxon>
         </taxonpath>
+        <keyword>
+            <langstring xml:lang="x-none">Taal</langstring>
+        </keyword>
     </classification>
     <classification>
         <purpose>
