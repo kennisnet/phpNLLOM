@@ -1,6 +1,8 @@
 {
   "name": "kennisnet/nllom",
   "description": "NLLOM service",
+  "homepage": "https://github.com/kennisnet/phpNLLOM",
+  "license": "MIT",
   "autoload": {
     "psr-4": {
       "Kennisnet\\NLLOM\\": "src/",
