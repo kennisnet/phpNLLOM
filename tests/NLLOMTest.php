@@ -442,6 +442,37 @@ TEST1;
         $this->assertEquals('Rijksinstituut voor Natuurbeheer', NLLOM::parseEntity($entity3));
     }
 
+    public function testFacade()
+    {
+        $domDocument = new \DOMDocument('1.0', 'utf-8');
+        $domDocument->load(__DIR__ . '/result.xml');
+
+        $mapper = new DomToLomMapper();
+        $nllom = $mapper->domToLom($domDocument);
+
+        $this->assertEquals('Test <strike>test</strike>', $nllom->getTitle());
+
+        $this->assertEquals('één beschrijving met speciale tekens', $nllom->getDescription());
+
+        $this->assertEquals('https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1', $nllom->getTechnicalLocation());
+
+        $this->assertEquals([
+            'urn:isbn:9789034553966',
+            'https://delen.edurep.nl/download.php?id=1c1aad84-a96b-4efe-8d23-25c870566497&test=1'
+        ], $nllom->getCatalogEntryUris());
+
+        $this->assertEquals([
+            'open opdracht'
+        ], $nllom->getLearningResourceTypes());
+
+        $this->assertInstanceOf(\DateTime::class, $nllom->getPublishDate());
+
+        $this->assertEquals([
+            'Digischool'
+        ], $nllom->getAuthors());
+
+    }
+
     /**
      * Format expected result in same way as results
      * @param $filename

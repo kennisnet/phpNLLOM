@@ -7,6 +7,49 @@ use Kennisnet\NLLOM\Library\LomContribute;
 class NLLOM extends Lom
 {
     /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->getGeneralTitle()->getLanguageStrings()[0]->getValue();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        $descriptions = $this->getGeneralDescriptions();
+        if (isset($descriptions[0])) {
+            return $descriptions[0]->getLanguageStrings()[0]->getValue();
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getCatalogEntryUris()
+    {
+        $results = [];
+        foreach ($this->getGeneralIdentifiers() as $resourceType) {
+            $results[] = $resourceType->getEntry();
+        }
+        return $results;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLearningResourceTypes()
+    {
+        $results = [];
+        foreach ($this->getEducationalLearningResourceTypes() as $resourceType) {
+            $results[] = $resourceType->getValue();
+        }
+        return $results;
+    }
+
+    /**
      * @return array
      */
     public function getPublishers()
@@ -28,6 +71,16 @@ class NLLOM extends Lom
         }
 
         return null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTechnicalLocation()
+    {
+        if (isset($this->getTechnicalLocations()[0])) {
+            return $this->getTechnicalLocations()[0]->getValue();
+        }
     }
 
     /**
