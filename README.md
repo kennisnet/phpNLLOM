@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kennisnet/phpNLLOM.svg?branch=master)](https://travis-ci.org/kennisnet/phpNLLOM)
+
 # NL LOM
 
 NL LOM is the Dutch applicationprofile of LOM. This profile was constructed after a project by 
