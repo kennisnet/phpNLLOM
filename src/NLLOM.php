@@ -11,7 +11,10 @@ class NLLOM extends Lom
      */
     public function getTitle()
     {
-        return $this->getGeneralTitle()->getLanguageStrings()[0]->getValue();
+        if($this->getGeneralTitle()) {
+            return $this->getGeneralTitle()->getLanguageStrings()[0]->getValue();
+        }
+        return '';
     }
 
     /**
