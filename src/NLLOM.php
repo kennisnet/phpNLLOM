@@ -68,7 +68,17 @@ class NLLOM extends Lom
         foreach ($this->getLifecycleContributors() as $contributor) {
             if ($contributor->getRole()->getValue() === 'publisher') {
                 if ($contributor->getDateTime()) {
-                    return (new \DateTime((string)$contributor->getDateTime()->getDateTime()));
+                    $dateTimeValue = (string)$contributor->getDateTime()->getDateTime();
+
+                    preg_match('/^(\d{4})$/', $dateTimeValue, $matches);
+
+                    if ($matches) {
+                        $dateTime = \DateTime::createFromFormat('Y-m-d', $dateTimeValue.'-01-01');
+                    } else {
+                        $dateTime = new \DateTime($dateTimeValue);
+                    }
+
+                    return $dateTime;
                 }
             }
         }
