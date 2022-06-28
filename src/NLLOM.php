@@ -70,7 +70,7 @@ class NLLOM extends Lom
                 if ($contributor->getDateTime()) {
                     $dateTimeValue = (string)$contributor->getDateTime()->getDateTime();
 
-                    preg_match('/(\d{4})$/', $dateTimeValue, $matches);
+                    preg_match('/^(\d{4})$/', $dateTimeValue, $matches);
 
                     if ($matches) {
                         $dateTime = \DateTime::createFromFormat('Y-m-d', $dateTimeValue.'-01-01');
