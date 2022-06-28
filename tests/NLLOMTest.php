@@ -473,6 +473,15 @@ TEST1;
 
     }
 
+    public function testPublishDateYearOnly()
+    {
+        $lom = new NLLOM();
+        $contributor = new LomContribute(new LomTerm('publisher'), [], new LomDateTime(new LomString('2019')));
+        $lom->addLifecycleContributor($contributor);
+
+        $this->assertEquals(\DateTime::createFromFormat('Y-m-d', '2019-01-01'), $lom->getPublishDate());
+    }
+
     /**
      * Format expected result in same way as results
      * @param $filename
@@ -486,4 +495,5 @@ TEST1;
         $dom->load(__DIR__ . '/' . $filename);
         return $dom->saveXML();
     }
+
 }
